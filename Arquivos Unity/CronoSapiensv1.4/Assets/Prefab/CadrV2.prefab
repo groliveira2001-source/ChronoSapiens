@@ -52,9 +52,10 @@ MonoBehaviour:
   hasbeenDiscard: 0
   hasbeenPlayed: 0
   handIndex: 0
+  invalidReason: 
   hoverHeight: 5
   hoverScale: 1.6
-  hoverSpeed: 20
+  hoverSpeed: 60
 --- !u!61 &-5045079367719216887
 BoxCollider2D:
   m_ObjectHideFlags: 0

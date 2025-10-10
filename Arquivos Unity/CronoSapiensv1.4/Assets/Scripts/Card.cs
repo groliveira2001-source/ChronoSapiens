@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,14 +10,18 @@ public class Card : MonoBehaviour
 
     private GameManager gm;
 
-    // Guardar posição e escala originais
+    [Header("Feedback")]
+    [TextArea(2, 4)]
+    public string invalidReason; // Texto explicativo se a carta for errada
+
+    // Guardar posiÃ§Ã£o e escala originais
     private Vector3 originalPosition;
     private Vector3 originalScale;
 
-    // Configuração do hover
+    // ConfiguraÃ§Ã£o do hover
     [SerializeField] private float hoverHeight = 2.0f;  // Quanto a carta sobe
     [SerializeField] private float hoverScale = 1.3f;   // Zoom
-    [SerializeField] private float hoverSpeed = 10f;    // Velocidade da transição
+    [SerializeField] private float hoverSpeed = 10f;    // Velocidade da transiÃ§Ã£o
 
     private bool isHovered = false;
     private bool isPlayable = true; // controla se o hover pode acontecer
@@ -25,6 +29,11 @@ public class Card : MonoBehaviour
     private void Start()
     {
         gm = FindObjectOfType<GameManager>();
+
+        if (gm == null)
+        {
+            Debug.LogError("GameManager nÃ£o encontrado na cena!");
+        }
 
         originalPosition = transform.position;
         originalScale = transform.localScale;
@@ -34,25 +43,25 @@ public class Card : MonoBehaviour
     {
         if (hasbeenDiscard)
         {
-            Invoke("MoveToDiscardPile", 0.5f);
+            Invoke(nameof(MoveToDiscardPile), 0.5f);
             hasbeenDiscard = false;
         }
 
-        if (!isPlayable) return; // se não pode mais ser jogada, ignora o hover
+        if (!isPlayable) return;
 
         // Hover sutil
-        if (isHovered)
-        {
-            Vector3 targetPos = originalPosition + new Vector3(0, hoverHeight, 0);
-            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * hoverSpeed);
-            transform.localScale = Vector3.Lerp(transform.localScale, originalScale * hoverScale, Time.deltaTime * hoverSpeed);
-        }
-        else
-        {
-            transform.position = Vector3.Lerp(transform.position, originalPosition, Time.deltaTime * hoverSpeed);
-            transform.localScale = Vector3.Lerp(transform.localScale, originalScale, Time.deltaTime * hoverSpeed);
-        }
+        Vector3 targetPos = isHovered
+            ? originalPosition + new Vector3(0, hoverHeight, 0)
+            : originalPosition;
+
+        Vector3 targetScale = isHovered
+            ? originalScale * hoverScale
+            : originalScale;
+
+        transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * hoverSpeed);
+        transform.localScale = Vector3.Lerp(transform.localScale, targetScale, Time.deltaTime * hoverSpeed);
     }
+
 
     private void OnMouseEnter()
     {
@@ -68,23 +77,24 @@ public class Card : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (!hasbeenPlayed)
-        {
-            isPlayable = false; // desativa hover depois do clique
-            isHovered = false;  // garante que não volte ao estado de hover
-            transform.localScale = originalScale; // volta à escala normal
+        if (hasbeenPlayed) return;
 
-            transform.position += Vector3.up * 0.4f;
-            hasbeenPlayed = true;
-            gm.avaliableCardsSlots[handIndex] = true;
-            Invoke("MoveTotestdeckPile", 2f);
-        }
+        isPlayable = false;
+        isHovered = false;
+        transform.localScale = originalScale;
+
+        transform.position += Vector3.up * 0.4f;
+        hasbeenPlayed = true;
+        gm.avaliableCardsSlots[handIndex] = true;
+
+        // espera um pouco antes de mover pro test deck
+        Invoke(nameof(MoveTotestdeckPile), 2f);
     }
 
     void MoveTotestdeckPile()
     {
         gm.testdeckPile.Add(this);
-        gm.UpdateProgress(gameObject.tag);
+        gm.UpdateProgress(gameObject.tag, this); // Envia referÃªncia da carta
         gameObject.SetActive(false);
     }
 
@@ -93,5 +103,14 @@ public class Card : MonoBehaviour
         gm.DiscardPile.Add(this);
         gm.avaliableCardsSlots[handIndex] = true;
         gameObject.SetActive(false);
+    }
+
+    public void ResetOriginalTransform()
+    {
+        originalPosition = transform.position;
+        originalScale = transform.localScale;
+        isPlayable = true;
+        isHovered = false;
+        hasbeenPlayed = false; // garante reset completo
     }
 }

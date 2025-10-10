@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -11,6 +11,9 @@ public class GameManager : MonoBehaviour
     public List<Card> DiscardPile = new List<Card>();
 
     public Transform[] cardSlots;
+
+    public Transform drawOrigin;
+
     public bool[] avaliableCardsSlots;
 
     public ProgressBar progressBar;
@@ -18,6 +21,7 @@ public class GameManager : MonoBehaviour
     public Image Gameover;
     public Image YouWin;
 
+    public FeedbackManager feedbackManager;
     void Start()
     {
         if (Gameover != null)
@@ -31,8 +35,8 @@ public class GameManager : MonoBehaviour
         }
 
     }
-    
-    public void UpdateProgress(string tag)
+
+    public void UpdateProgress(string tag, Card card = null) // 👈 adicione o parâmetro opcional
     {
         if (tag == "Certa")
         {
@@ -45,10 +49,21 @@ public class GameManager : MonoBehaviour
         else if (tag == "Errada")
         {
             progressBar.current -= 1;
+
+            // 👇 mostra o feedback, se houver um motivo configurado
+            if (card != null && feedbackManager != null)
+            {
+                string message = string.IsNullOrEmpty(card.invalidReason)
+                    ? "Jogada incorreta!"
+                    : card.invalidReason;
+
+                feedbackManager.ShowFeedback(message);
+            }
         }
 
-        // garante que o valor fique dentro dos limites
+
         progressBar.current = Mathf.Clamp(progressBar.current, 0, progressBar.maximum);
+
 
         if (progressBar.current <= 0)
         {
@@ -63,29 +78,43 @@ public class GameManager : MonoBehaviour
 
     public void DrawCard()
     {
-        if (deck.Count >= 1)
+        // Verifica se ainda há cartas no deck
+        if (deck.Count < 1)
         {
-            Card randCard = deck[Random.Range(0, deck.Count)];
+            Debug.Log("Não há cartas suficientes no deck para comprar.");
+            return;
+        }
 
-            for (int i = 0; i < avaliableCardsSlots.Length; i++)
+        // Percorre todos os slots disponíveis
+        for (int i = 0; i < avaliableCardsSlots.Length; i++)
+        {
+            // Se o slot está livre e há cartas no deck
+            if (avaliableCardsSlots[i] && deck.Count > 0)
             {
-                if (avaliableCardsSlots[i] == true)
-                {
-                    randCard.gameObject.SetActive(true);
-                    randCard.handIndex = i;
-                    randCard.transform.position = cardSlots[i].position;
-                    randCard.hasbeenPlayed = false;
-                    avaliableCardsSlots[i] = false;
-                    deck.Remove(randCard);
-                    return;
-                }
+                // Escolhe uma carta aleatória do deck
+                Card randCard = deck[Random.Range(0, deck.Count)];
+
+                // Ativa e posiciona a carta
+                randCard.gameObject.SetActive(true);
+                randCard.handIndex = i;
+                randCard.transform.position = cardSlots[i].position;
+                randCard.ResetOriginalTransform();
+                randCard.hasbeenPlayed = false;
+
+                // Marca o slot como ocupado
+                avaliableCardsSlots[i] = false;
+
+                // Remove a carta do deck
+                deck.Remove(randCard);
+
             }
+
         }
     }
 
     public void Shuflle()
     {
-        // Cartas jogadas v�o de volta pro deck
+        // Cartas jogadas vão de volta pro deck
         if (testdeckPile.Count >= 1)
         {
             foreach (Card card in testdeckPile)
@@ -95,7 +124,7 @@ public class GameManager : MonoBehaviour
             testdeckPile.Clear();
         }
 
-        // Cartas descartadas tamb�m voltam pro deck
+        // Cartas descartadas também voltam pro deck
         if (DiscardPile.Count >= 1)
         {
             foreach (Card card in DiscardPile)
@@ -115,13 +144,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ?? M�todo chamado no fim do turno para descartar cartas que sobraram na m�o
+    // ?? Método chamado no fim do turno para descartar cartas que sobraram na mão
     public void DiscardDeck()
     {
         // Procura em cada slot se existe uma carta ativa
         foreach (Card card in FindObjectsOfType<Card>())
         {
-            // S� descarta se a carta estiver ativa e ainda n�o tiver sido jogada
+            // Só descarta se a carta estiver ativa e ainda não tiver sido jogada
             if (card.gameObject.activeSelf && !card.hasbeenPlayed)
             {
                 card.hasbeenDiscard = true;

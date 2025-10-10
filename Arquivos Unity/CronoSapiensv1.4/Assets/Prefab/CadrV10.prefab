@@ -112,7 +112,7 @@ Transform:
   m_GameObject: {fileID: 3437570773364442808}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 9.6619, y: 1.9439151, z: 29.507553}
+  m_LocalPosition: {x: -0.67, y: -1.44, z: 29.507553}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -136,9 +136,10 @@ MonoBehaviour:
   hasbeenDiscard: 0
   hasbeenPlayed: 0
   handIndex: 0
+  invalidReason: "Errada porque \xE9 a 10!\n"
   hoverHeight: 5
   hoverScale: 1.6
-  hoverSpeed: 20
+  hoverSpeed: 60
 --- !u!61 &6575811098606091755
 BoxCollider2D:
   m_ObjectHideFlags: 0

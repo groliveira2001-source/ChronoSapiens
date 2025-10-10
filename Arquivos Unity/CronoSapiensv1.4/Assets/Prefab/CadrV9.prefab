@@ -220,9 +220,12 @@ MonoBehaviour:
   hasbeenDiscard: 0
   hasbeenPlayed: 0
   handIndex: 0
+  invalidReason: 'Errouuuuuuu!
+
+'
   hoverHeight: 5
   hoverScale: 1.6
-  hoverSpeed: 20
+  hoverSpeed: 60
 --- !u!61 &8735774281783241583
 BoxCollider2D:
   m_ObjectHideFlags: 0
