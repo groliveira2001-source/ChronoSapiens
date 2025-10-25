@@ -22,6 +22,9 @@ public class GameManager : MonoBehaviour
     public Image YouWin;
 
     public FeedbackManager feedbackManager;
+
+    public DialogueTrigger dialogueTrigger;
+
     void Start()
     {
         if (Gameover != null)
@@ -36,7 +39,7 @@ public class GameManager : MonoBehaviour
 
     }
 
-    public void UpdateProgress(string tag, Card card = null) // 👈 adicione o parâmetro opcional
+    public void UpdateProgress(string tag, Card card = null)
     {
         if (tag == "Certa")
         {
@@ -50,7 +53,7 @@ public class GameManager : MonoBehaviour
         {
             progressBar.current -= 1;
 
-            // 👇 mostra o feedback, se houver um motivo configurado
+
             if (card != null && feedbackManager != null)
             {
                 string message = string.IsNullOrEmpty(card.invalidReason)
@@ -64,6 +67,11 @@ public class GameManager : MonoBehaviour
 
         progressBar.current = Mathf.Clamp(progressBar.current, 0, progressBar.maximum);
 
+        // 🔹 CHAMA O TRIGGER DE DIÁLOGO AQUI:
+        if (dialogueTrigger != null)
+        {
+            dialogueTrigger.CheckForDialogue(progressBar.current);
+        }
 
         if (progressBar.current <= 0)
         {
@@ -74,6 +82,7 @@ public class GameManager : MonoBehaviour
         {
             ShowYouWin();
         }
+
     }
 
     public void DrawCard()
